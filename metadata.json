@@ -1,0 +1,5 @@
+{
+  "name": "Monitoramento Estoque e Compras",
+  "description": "Dashboard para monitoramento de projetos na fase de Estoque e Compras com análise de SLA e geração de emails de cobrança.",
+  "requestFramePermissions": []
+}
