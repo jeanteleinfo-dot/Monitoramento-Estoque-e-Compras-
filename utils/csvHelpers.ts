@@ -1,11 +1,10 @@
-import { Project } from '../types';
+
+import { Project, MultiPhaseProject } from '../types';
 
 export const parseProjectsCSV = (csvText: string): Project[] => {
   const lines = csvText.split(/\r?\n/);
   const projects: Project[] = [];
   
-  // Start from index 1 to skip header if it exists
-  // We detect if the first line is a header by checking for "Título" or "Projeto"
   let startIndex = 0;
   if (lines[0] && (lines[0].includes('Título') || lines[0].includes('Projeto'))) {
     startIndex = 1;
@@ -15,18 +14,10 @@ export const parseProjectsCSV = (csvText: string): Project[] => {
     const line = lines[i].trim();
     if (!line) continue;
     
-    // Split by semicolon as per the user's file format
     const columns = line.split(';');
     
-    // Ensure we have enough columns (at least 4 based on the sample)
-    // 0: Título
-    // 1: Nº Projeto (Centro de controle)
-    // 2: Primeira vez que entrou na fase ESTOQUE_COMPRAS
-    // 3: Tempo total na fase ESTOQUE_COMPRAS (dias)
-    // 4: Entrega Teleinfo
     if (columns.length < 4) continue;
     
-    // Parse the days, replacing comma with dot for float conversion
     const daysString = columns[3]?.replace(',', '.') || '0';
     const dias = parseFloat(daysString);
     
@@ -42,3 +33,40 @@ export const parseProjectsCSV = (csvText: string): Project[] => {
   
   return projects;
 };
+
+export const parseMultiPhaseCSV = (csvText: string): MultiPhaseProject[] => {
+  const lines = csvText.split(/\r?\n/);
+  const projects: MultiPhaseProject[] = [];
+  
+  // Header detection logic
+  let startIndex = 0;
+  if (lines[0] && (lines[0].toLowerCase().includes('titulo') || lines[0].toLowerCase().includes('título'))) {
+    startIndex = 1;
+  }
+  
+  for (let i = startIndex; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    
+    const columns = line.split(';');
+    
+    // Expecting: Titulo; Nº Projeto; Triagem; Kickoff; Estoque_Compras
+    if (columns.length < 5) continue;
+    
+    const parseDays = (val: string) => {
+        const num = parseFloat(val?.replace(',', '.') || '0');
+        return isNaN(num) ? 0 : num;
+    };
+
+    projects.push({
+      id: `phase-${Date.now()}-${i}`,
+      titulo: columns[0]?.trim() || 'Sem Título',
+      numeroProjeto: columns[1]?.trim() || '',
+      diasTriagem: parseDays(columns[2]),
+      diasKickoff: parseDays(columns[3]),
+      diasEstoque: parseDays(columns[4]),
+    });
+  }
+  
+  return projects;
+}

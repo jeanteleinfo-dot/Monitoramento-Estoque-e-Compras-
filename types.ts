@@ -1,3 +1,4 @@
+
 export interface Project {
   id: string;
   titulo: string; // "Projetos"
@@ -5,6 +6,15 @@ export interface Project {
   inicioFase: string; // "Primeira vez que entrou..."
   diasNaFase: number; // "Tempo total..."
   entregaTeleinfo: string;
+}
+
+export interface MultiPhaseProject {
+  id: string;
+  titulo: string;
+  numeroProjeto: string;
+  diasTriagem: number;
+  diasKickoff: number;
+  diasEstoque: number;
 }
 
 export enum SLAStatus {
