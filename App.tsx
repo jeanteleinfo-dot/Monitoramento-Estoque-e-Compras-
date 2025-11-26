@@ -1,15 +1,17 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { INITIAL_PROJECTS, SLA_DAYS_WARNING, SLA_DAYS_CRITICAL } from './constants';
 import { ProjectTable } from './components/ProjectTable';
 import { StatCard } from './components/StatCard';
 import { Charts } from './components/Charts';
 import { EmailModal } from './components/EmailModal';
 import { Project } from './types';
+import { parseProjectsCSV } from './utils/csvHelpers';
 
 function App() {
-  const [projects] = useState<Project[]>(INITIAL_PROJECTS);
+  const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Calculate Summary Stats
   const stats = useMemo(() => {
@@ -17,7 +19,7 @@ function App() {
     const delayed = projects.filter(p => p.diasNaFase > SLA_DAYS_CRITICAL).length;
     const warning = projects.filter(p => p.diasNaFase > SLA_DAYS_WARNING && p.diasNaFase <= SLA_DAYS_CRITICAL).length;
     const onTime = projects.filter(p => p.diasNaFase <= SLA_DAYS_WARNING).length;
-    const avgDays = projects.reduce((acc, curr) => acc + curr.diasNaFase, 0) / total;
+    const avgDays = total > 0 ? projects.reduce((acc, curr) => acc + curr.diasNaFase, 0) / total : 0;
 
     return { total, delayed, warning, onTime, avgDays };
   }, [projects]);
@@ -27,31 +29,69 @@ function App() {
     setIsModalOpen(true);
   };
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      if (text) {
+        const importedProjects = parseProjectsCSV(text);
+        if (importedProjects.length > 0) {
+          setProjects(importedProjects);
+          alert(`${importedProjects.length} projetos importados com sucesso!`);
+        } else {
+          alert('Não foi possível ler os projetos do arquivo CSV. Verifique o formato.');
+        }
+      }
+    };
+    reader.readAsText(file);
+    // Reset input so same file can be selected again if needed
+    event.target.value = '';
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-600 p-2 rounded-lg">
+            <div className="bg-blue-600 p-2 rounded-lg shadow-blue-200 shadow-md">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h1 className="text-xl font-bold text-slate-800 tracking-tight">Monitoramento Estoque e Compras</h1>
+            <h1 className="text-xl font-bold text-slate-800 tracking-tight hidden md:block">Monitoramento Estoque e Compras</h1>
+            <h1 className="text-xl font-bold text-slate-800 tracking-tight md:hidden">Monitoramento</h1>
           </div>
           <div className="flex items-center gap-4">
-             <div className="text-right hidden sm:block">
-               <p className="text-xs text-gray-400 font-medium">SLA Objetivo</p>
-               <p className="text-sm font-bold text-slate-700">5 Dias</p>
-             </div>
+             {/* Import Button */}
+             <input 
+               type="file" 
+               accept=".csv" 
+               ref={fileInputRef}
+               className="hidden"
+               onChange={handleFileUpload}
+             />
+             <button 
+               onClick={() => fileInputRef.current?.click()}
+               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 hover:border-blue-300 transition-all shadow-sm"
+             >
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+               </svg>
+               Importar CSV
+             </button>
+
              <div className="h-8 w-px bg-gray-200 hidden sm:block"></div>
-             <div className="flex items-center gap-2">
+             
+             <div className="flex items-center gap-2 hidden sm:flex">
                <span className="relative flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
                 </span>
-                <span className="text-sm font-medium text-gray-600">Atualizado Agora</span>
+                <span className="text-sm font-medium text-gray-600">Ao Vivo</span>
              </div>
           </div>
         </div>

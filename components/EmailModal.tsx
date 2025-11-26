@@ -39,6 +39,8 @@ export const EmailModal: React.FC<EmailModalProps> = ({ project, isOpen, onClose
     }
 
     // Create mailto link to open default mail client
+    // Note: mailto links have size limits, usually around 2000 characters. 
+    // Very long emails might be truncated in some clients.
     const mailtoLink = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(draft)}`;
     
     // Open the mail client
@@ -51,9 +53,9 @@ export const EmailModal: React.FC<EmailModalProps> = ({ project, isOpen, onClose
   if (!isOpen || !project) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-fade-in">
-        <div className="bg-slate-900 px-6 py-4 flex justify-between items-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-fade-in flex flex-col max-h-[90vh]">
+        <div className="bg-slate-900 px-6 py-4 flex justify-between items-center shrink-0">
           <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
@@ -68,12 +70,12 @@ export const EmailModal: React.FC<EmailModalProps> = ({ project, isOpen, onClose
           </button>
         </div>
         
-        <div className="p-6 bg-white">
+        <div className="p-6 bg-white overflow-y-auto">
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Para:</label>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Para:</label>
             <input 
               type="email" 
-              className="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white text-gray-900 placeholder-gray-400"
+              className="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white text-slate-900 placeholder-gray-400"
               placeholder="responsavel@empresa.com.br" 
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
@@ -81,17 +83,17 @@ export const EmailModal: React.FC<EmailModalProps> = ({ project, isOpen, onClose
           </div>
 
           <div className="mb-4">
-             <label className="block text-sm font-medium text-gray-700 mb-1">Assunto:</label>
+             <label className="block text-sm font-bold text-gray-700 mb-1">Assunto:</label>
              <input 
               type="text" 
-              className="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white text-gray-900"
+              className="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white text-slate-900"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
             />
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-bold text-gray-700 mb-1">
               Mensagem (Gerada por IA):
             </label>
             <div className="relative">
@@ -101,33 +103,35 @@ export const EmailModal: React.FC<EmailModalProps> = ({ project, isOpen, onClose
                 </div>
               )}
               <textarea 
-                className="w-full h-64 border-gray-300 border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none font-sans text-sm leading-relaxed bg-white text-gray-900"
+                className="w-full h-64 border-gray-300 border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none font-sans text-sm leading-relaxed bg-white text-slate-900"
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
+                style={{ backgroundColor: '#ffffff', color: '#0f172a' }} // Explicit inline style to override any external interferences
               />
             </div>
-            <p className="text-xs text-gray-500 mt-2 text-right">
-              Powered by Gemini 2.5 Flash
-            </p>
+            <div className="mt-2 flex justify-between items-center text-xs text-gray-500">
+               <span>Este texto será aberto no seu cliente de email padrão.</span>
+               <span>Powered by Gemini 2.5 Flash</span>
+            </div>
           </div>
+        </div>
 
-          <div className="flex justify-end gap-3">
-            <button 
-              onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
-            >
-              Cancelar
-            </button>
-            <button 
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-md transition-all flex items-center gap-2"
-              onClick={handleSendEmail}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-              </svg>
-              Abrir no Email
-            </button>
-          </div>
+        <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0">
+          <button 
+            onClick={onClose}
+            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg font-medium transition-colors shadow-sm"
+          >
+            Cancelar
+          </button>
+          <button 
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-md transition-all flex items-center gap-2"
+            onClick={handleSendEmail}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+            </svg>
+            Abrir no Email
+          </button>
         </div>
       </div>
     </div>
