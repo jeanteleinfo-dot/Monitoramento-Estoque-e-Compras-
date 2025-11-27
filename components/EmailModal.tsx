@@ -18,10 +18,13 @@ export const EmailModal: React.FC<EmailModalProps> = ({ project, isOpen, onClose
     if (isOpen && project) {
       setLoading(true);
       setRecipient(''); // Reset recipient
-      setSubject(`Acompanhamento: ${project.titulo}`); // Set default subject
+      
+      // Concatena Título + Centro de Custo (Nº Projeto)
+      const projectIdentifier = `${project.titulo} - ${project.numeroProjeto}`;
+      setSubject(`Acompanhamento: ${projectIdentifier}`); // Set default subject with cost center
       
       generateEmailDraft({
-        projectName: project.titulo,
+        projectName: projectIdentifier,
         daysInPhase: project.diasNaFase
       })
       .then(text => setDraft(text))
