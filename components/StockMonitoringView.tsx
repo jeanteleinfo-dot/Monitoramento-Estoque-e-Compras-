@@ -9,11 +9,11 @@ import { SLA_DAYS_WARNING, SLA_DAYS_CRITICAL } from '../constants';
 import { parseProjectsCSV } from '../utils/csvHelpers';
 
 interface StockMonitoringViewProps {
-  initialProjects: Project[];
+  projects: Project[];
+  onUpdateProjects: (projects: Project[]) => void;
 }
 
-export const StockMonitoringView: React.FC<StockMonitoringViewProps> = ({ initialProjects }) => {
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+export const StockMonitoringView: React.FC<StockMonitoringViewProps> = ({ projects, onUpdateProjects }) => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -44,7 +44,7 @@ export const StockMonitoringView: React.FC<StockMonitoringViewProps> = ({ initia
       if (text) {
         const importedProjects = parseProjectsCSV(text);
         if (importedProjects.length > 0) {
-          setProjects(importedProjects);
+          onUpdateProjects(importedProjects);
           alert(`${importedProjects.length} projetos importados com sucesso!`);
         } else {
           alert('Não foi possível ler os projetos do arquivo CSV. Verifique o formato.');

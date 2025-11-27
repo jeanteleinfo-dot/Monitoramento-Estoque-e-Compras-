@@ -3,9 +3,14 @@ import React, { useState } from 'react';
 import { INITIAL_PROJECTS } from './constants';
 import { StockMonitoringView } from './components/StockMonitoringView';
 import { SLAControlView } from './components/SLAControlView';
+import { Project, MultiPhaseProject } from './types';
 
 function App() {
   const [activeTab, setActiveTab] = useState<'STOCK' | 'SLA'>('STOCK');
+  
+  // State lifted up to persist between tab switches
+  const [stockProjects, setStockProjects] = useState<Project[]>(INITIAL_PROJECTS);
+  const [slaProjects, setSlaProjects] = useState<MultiPhaseProject[]>([]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -51,9 +56,15 @@ function App() {
       {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'STOCK' ? (
-           <StockMonitoringView initialProjects={INITIAL_PROJECTS} />
+           <StockMonitoringView 
+             projects={stockProjects} 
+             onUpdateProjects={setStockProjects} 
+           />
         ) : (
-           <SLAControlView />
+           <SLAControlView 
+             projects={slaProjects} 
+             onUpdateProjects={setSlaProjects} 
+           />
         )}
       </main>
 

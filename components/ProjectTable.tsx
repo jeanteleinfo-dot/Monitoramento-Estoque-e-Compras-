@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Project, SLAStatus } from '../types';
 import { SLA_DAYS_WARNING, SLA_DAYS_CRITICAL } from '../constants';
@@ -23,31 +24,68 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onEmailCli
     return true;
   });
 
+  // Calculate counts for badges
+  const warningCount = projects.filter(p => getSLAStatus(p.diasNaFase) === SLAStatus.WARNING).length;
+  const criticalCount = projects.filter(p => getSLAStatus(p.diasNaFase) === SLAStatus.CRITICAL).length;
+  const totalCount = projects.length;
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="p-5 border-b border-gray-100 flex justify-between items-center">
+      <div className="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <h3 className="text-lg font-bold text-gray-800">Detalhamento dos Projetos</h3>
-        <div className="flex gap-2">
+        
+        {/* Modern Segmented Control Filter */}
+        <div className="flex bg-slate-100 p-1 rounded-lg self-start sm:self-auto">
           <button 
             onClick={() => setFilter('ALL')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-colors ${filter === 'ALL' ? 'bg-slate-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+              filter === 'ALL' 
+                ? 'bg-white text-slate-800 shadow-sm' 
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+            }`}
           >
             Todos
+            <span className={`px-1.5 py-0.5 rounded-full text-xs font-semibold ${
+              filter === 'ALL' ? 'bg-slate-100 text-slate-600' : 'bg-slate-200 text-slate-500'
+            }`}>
+              {totalCount}
+            </span>
           </button>
-           <button 
+
+          <button 
             onClick={() => setFilter('WARNING')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-colors ${filter === 'WARNING' ? 'bg-yellow-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+              filter === 'WARNING' 
+                ? 'bg-white text-amber-600 shadow-sm' 
+                : 'text-slate-500 hover:text-amber-600 hover:bg-slate-200/50'
+            }`}
           >
-            Atenção ({projects.filter(p => getSLAStatus(p.diasNaFase) === SLAStatus.WARNING).length})
+            Atenção
+            <span className={`px-1.5 py-0.5 rounded-full text-xs font-semibold ${
+              filter === 'WARNING' ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-500'
+            }`}>
+              {warningCount}
+            </span>
           </button>
+
           <button 
             onClick={() => setFilter('DELAYED')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-colors ${filter === 'DELAYED' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+              filter === 'DELAYED' 
+                ? 'bg-white text-red-600 shadow-sm' 
+                : 'text-slate-500 hover:text-red-600 hover:bg-slate-200/50'
+            }`}
           >
-            Atrasados ({projects.filter(p => getSLAStatus(p.diasNaFase) === SLAStatus.CRITICAL).length})
+            Atrasados
+            <span className={`px-1.5 py-0.5 rounded-full text-xs font-semibold ${
+              filter === 'DELAYED' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-500'
+            }`}>
+              {criticalCount}
+            </span>
           </button>
         </div>
       </div>
+
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
           <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-100">
