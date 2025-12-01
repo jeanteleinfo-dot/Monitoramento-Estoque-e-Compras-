@@ -19,16 +19,16 @@ export const EmailModal: React.FC<EmailModalProps> = ({ project, isOpen, onClose
       setLoading(true);
       setRecipient(''); // Reset recipient
       
-      // Concatena Título + Centro de Custo (Nº Projeto)
-      const projectIdentifier = `${project.titulo} - ${project.numeroProjeto}`;
-      setSubject(`Acompanhamento: ${projectIdentifier}`); // Set default subject with cost center
+      // Concatena Título + Centro de Custo (Nº Projeto) para o assunto e para o prompt
+      const projectIdentifier = `${project.titulo} - CC: ${project.numeroProjeto}`;
+      setSubject(`Acompanhamento: ${projectIdentifier}`); 
       
       generateEmailDraft({
         projectName: projectIdentifier,
         daysInPhase: project.diasNaFase
       })
       .then(text => setDraft(text))
-      .catch(() => setDraft("Erro ao gerar rascunho."))
+      .catch(() => setDraft("Prezados,\n\nFavor verificar o status deste projeto.\n\nAtenciosamente.")) // Fallback final
       .finally(() => setLoading(false));
     } else {
       setDraft('');
@@ -42,8 +42,6 @@ export const EmailModal: React.FC<EmailModalProps> = ({ project, isOpen, onClose
     }
 
     // Create mailto link to open default mail client
-    // Note: mailto links have size limits, usually around 2000 characters. 
-    // Very long emails might be truncated in some clients.
     const mailtoLink = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(draft)}`;
     
     // Open the mail client
@@ -64,7 +62,7 @@ export const EmailModal: React.FC<EmailModalProps> = ({ project, isOpen, onClose
               <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
               <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
             </svg>
-            Enviar Cobrança
+            Enviar Cobrança - Estoque & Compras
           </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -79,7 +77,7 @@ export const EmailModal: React.FC<EmailModalProps> = ({ project, isOpen, onClose
             <input 
               type="email" 
               className="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white text-slate-900 placeholder-gray-400"
-              placeholder="responsavel@empresa.com.br" 
+              placeholder="estoque.compras@empresa.com.br" 
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
             />
@@ -97,7 +95,7 @@ export const EmailModal: React.FC<EmailModalProps> = ({ project, isOpen, onClose
 
           <div className="mb-6">
             <label className="block text-sm font-bold text-gray-700 mb-1">
-              Mensagem (Gerada por IA):
+              Mensagem:
             </label>
             <div className="relative">
               {loading && (
@@ -109,12 +107,12 @@ export const EmailModal: React.FC<EmailModalProps> = ({ project, isOpen, onClose
                 className="w-full h-64 border-gray-300 border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none font-sans text-sm leading-relaxed bg-white text-slate-900"
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                style={{ backgroundColor: '#ffffff', color: '#0f172a' }} // Explicit inline style to override any external interferences
+                style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
               />
             </div>
             <div className="mt-2 flex justify-between items-center text-xs text-gray-500">
                <span>Este texto será aberto no seu cliente de email padrão.</span>
-               <span>Powered by Gemini 2.5 Flash</span>
+               <span>{process.env.API_KEY ? 'Gerado por IA' : 'Template Padrão (IA Offline)'}</span>
             </div>
           </div>
         </div>
